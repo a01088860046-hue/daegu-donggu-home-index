@@ -6,7 +6,7 @@ if (!serviceKey) throw new Error('DATA_GO_KR_API_KEY secret is missing.');
 const lawdCd = '27140';
 const monthsBack = 36;
 const endpoints = {
-  sale: 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev',
+  sale: 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade',
   rent: 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent'
 };
 
