@@ -35,7 +35,16 @@ async function fetchMonth(kind, ymd) {
   url.searchParams.set('DEAL_YMD', ymd);
   url.searchParams.set('pageNo', '1');
   url.searchParams.set('numOfRows', '9999');
-  const response = await fetch(url, { headers: { Accept: 'application/xml' } });
+  let response;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    try {
+      response = await fetch(url, { headers: { Accept: 'application/xml' }, signal: AbortSignal.timeout(30000) });
+      if (response.ok || response.status < 500) break;
+    } catch (error) {
+      if (attempt === 4) throw new Error(`${kind} ${ymd}: network request failed after 4 attempts`, { cause: error });
+    }
+    await new Promise(resolve => setTimeout(resolve, attempt * 1500));
+  }
   const xml = await response.text();
   if (!response.ok) throw new Error(`${kind} ${ymd}: HTTP ${response.status}`);
   const resultCode = tag(xml, 'resultCode');
