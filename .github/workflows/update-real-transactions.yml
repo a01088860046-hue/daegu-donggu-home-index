@@ -27,7 +27,18 @@ jobs:
       - name: Fetch MOLIT apartment transactions
         env:
           DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
-        run: node scripts/fetch-transactions.mjs
+        shell: bash
+        run: |
+          if [ -z "$DATA_GO_KR_API_KEY" ]; then
+            echo "::error title=Secret missing::Repository secret DATA_GO_KR_API_KEY is not registered."
+            exit 1
+          fi
+          if ! output=$(node scripts/fetch-transactions.mjs 2>&1); then
+            safe_output=$(printf '%s' "$output" | tail -n 1 | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g')
+            echo "::error title=MOLIT API sync failed::$safe_output"
+            exit 1
+          fi
+          echo "$output"
       - name: Commit refreshed public data
         run: |
           git config user.name "github-actions[bot]"
