@@ -109,6 +109,7 @@
           <p><b class="positive">+0.3%p</b> 전월 대비</p>
         </article>
       </section>
+      <p class="data-freshness" id="dataFreshness">국토교통부 실거래 자료를 확인하고 있습니다…</p>
 
       <section class="dashboard-grid main-grid">
         <article class="card trend-card">
@@ -123,7 +124,7 @@
           </div>
           <div class="chart-summary"><span class="legend-dot coral"></span><b id="chartModeLabel">매매 지수</b><strong id="chartSummary">104.8</strong><span class="positive">▲ 0.62%</span></div>
           <div class="line-chart" id="lineChart" aria-label="가격지수 추이 차트"></div>
-          <div class="chart-foot"><span>※ 2025.09 = 100 기준</span><span>선택 월까지의 신고자료 반영</span></div>
+          <div class="chart-foot"><span>※ 조회기간 첫 거래월 중위가격 = 100</span><span>취소·해제 신고 제외</span></div>
         </article>
 
         <article class="card map-card">
@@ -238,7 +239,7 @@
 
     <footer>
       <div><b>김영숙부동산</b><span>대표 김영숙 · 010-2167-2400</span></div>
-      <p>본 화면은 서비스 기획용 예시 데이터로 제작되었습니다. 실제 투자·계약 판단 시 국토교통부 실거래가 공개시스템 등 원자료를 확인하세요.</p>
+      <p>가격·거래량은 국토교통부 실거래가 공개자료를 가공한 참고정보입니다. 신고 정정·해제 및 자료 반영 시차가 있을 수 있으므로 계약 전 원자료를 확인하세요.</p>
       <span>© 2026 DONG-GU HOME INDEX</span>
     </footer>
   </div>
@@ -248,8 +249,8 @@
     <button class="dialog-close" aria-label="닫기">×</button>
     <span class="dialog-kicker">DATA NOTE</span>
     <h2>대시보드 데이터 안내</h2>
-    <p>현재 버전은 화면 구성과 사용 흐름을 검토하기 위한 <b>시뮬레이션 데이터</b>를 사용합니다. 동·조회 기간·거래유형을 바꾸면 지표와 차트, 순위가 함께 갱신됩니다.</p>
-    <div class="dialog-box"><b>실서비스 연동 권장 소스</b><span>국토교통부 실거래가 공개시스템 · 한국부동산원 · 대구광역시 공공데이터 · 교육부 학교알리미</span></div>
+    <p>가격·거래량·순위는 <b>국토교통부 아파트 매매 및 전월세 실거래가 OpenAPI</b> 자료를 사용합니다. 취소·해제 거래를 제외하며 매일 자동 갱신됩니다.</p>
+    <div class="dialog-box"><b>계산 기준</b><span>평당가는 거래금액을 전용면적 3.3㎡ 기준으로 환산합니다. 월세 순위는 월세액을 기준으로 하며 보증금은 함께 표시합니다.</span></div>
   </dialog>
   <script src="app.js"></script>
 </body>
