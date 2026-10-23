@@ -152,6 +152,12 @@
                 <button class="map-pin" data-region="율하동" aria-label="율하동"><circle cx="307" cy="345" r="9"/><text x="322" y="349">율하역</text></button>
                 <button class="map-pin" data-region="봉무동" aria-label="봉무동"><circle cx="223" cy="77" r="9"/><text x="238" y="81">이시아폴리스</text></button>
               </g>
+              <g class="school-map-pins" aria-label="주요 학교">
+                <g class="school-map-pin" role="button" tabindex="0" data-school="동대구초등학교"><circle cx="123" cy="218" r="8"/><text x="123" y="221">S</text></g>
+                <g class="school-map-pin" role="button" tabindex="0" data-school="신암중학교"><circle cx="166" cy="168" r="8"/><text x="166" y="171">S</text></g>
+                <g class="school-map-pin" role="button" tabindex="0" data-school="대구새론초등학교"><circle cx="411" cy="238" r="8"/><text x="411" y="241">S</text></g>
+                <g class="school-map-pin" role="button" tabindex="0" data-school="율하초등학교"><circle cx="286" cy="370" r="8"/><text x="286" y="373">S</text></g>
+              </g>
             </svg>
             <div class="map-stats">
               <span>선택 생활권</span><b id="mapRegion">동구 전체</b>
@@ -204,6 +210,11 @@
               <div class="score-ring" style="--score:82"><span><b id="locScore">82</b><small>/ 100</small></span></div>
             </div>
             <div class="detail-grid" id="locFacts"></div>
+            <div class="school-explorer" id="schoolExplorer">
+              <div class="school-explorer-head"><span>학교를 눌러 상세정보를 확인하세요</span><small>참고용 데모 정보</small></div>
+              <div class="school-list" id="schoolList"></div>
+              <div class="school-selected" id="schoolSelected"></div>
+            </div>
             <div class="analyst-note"><span>AI SUMMARY</span><p id="locNote">율하·각산 생활권은 학교와 신축 주거지가 가깝고, 신천·신암 생활권은 학원 및 문화시설 접근성이 상대적으로 우수합니다.</p></div>
           </article>
         </div>

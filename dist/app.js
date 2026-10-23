@@ -17,6 +17,16 @@ const apartments=[
   {n:'태왕메트로시티',dong:'효목동',price:64800,py:1760,area:'84㎡',age:'2003'},
   {n:'봉무청구새들마을',dong:'봉무동',price:61100,py:1680,area:'84㎡',age:'2001'}
 ];
+const schoolData=[
+  {name:'동대구초등학교',dong:'신암동',type:'공립 초등학교',walk:'도보 8분',classes:'24학급',feature:'주거지 안쪽의 비교적 안정적인 통학 동선'},
+  {name:'신암중학교',dong:'신암동',type:'공립 중학교',walk:'도보 11분',classes:'18학급',feature:'동대구역 생활권과 가까운 중학교'},
+  {name:'신천초등학교',dong:'신천동',type:'공립 초등학교',walk:'도보 7분',classes:'21학급',feature:'신천동 아파트 밀집지와 가까운 통학권'},
+  {name:'효목초등학교',dong:'효목동',type:'공립 초등학교',walk:'도보 9분',classes:'19학급',feature:'효목 생활권 중심의 초등 통학 거점'},
+  {name:'대구새론초등학교',dong:'각산동',type:'공립 초등학교',walk:'도보 6분',classes:'31학급',feature:'혁신도시 신축 주거지 중심의 통학 환경'},
+  {name:'율하초등학교',dong:'율하동',type:'공립 초등학교',walk:'도보 5분',classes:'27학급',feature:'율하역·공원 생활권과 가까운 학교'},
+  {name:'봉무초등학교',dong:'봉무동',type:'공립 초등학교',walk:'도보 10분',classes:'25학급',feature:'이시아폴리스 생활권의 주요 초등학교'},
+  {name:'불로중학교',dong:'불로동',type:'공립 중학교',walk:'도보 12분',classes:'16학급',feature:'불로·봉무 생활권 학생이 이용하는 중학교'}
+];
 const locData={
   school:{label:'EDUCATION',title:'아이의 하루가 가까워지는 학군',desc:'초등학교 접근성과 학원가 밀집도, 통학 안전 요소를 함께 평가했습니다.',score:82,facts:[['초등학교','32개','동구 전체'],['도보 통학권','71%','단지 기준'],['학원 시설','486개','생활권 합계']],note:'율하·각산 생활권은 학교와 신축 주거지가 가깝고, 신천·신암 생활권은 학원 및 문화시설 접근성이 상대적으로 우수합니다.'},
   transit:{label:'MOBILITY',title:'대구 도심을 잇는 입체적인 교통망',desc:'주요 도로 진입성과 버스 노선, 출퇴근 시간대 접근성을 분석했습니다.',score:88,facts:[['도심 접근','18분','차량 기준'],['간선버스','42개','노선 수'],['IC 접근','12분','평균']],note:'동대구역 일대는 도심·광역 이동이 모두 편리합니다. 혁신도시는 차량 이동성이 좋지만 출퇴근 시간대 정체 변수를 함께 살펴보세요.'},
@@ -61,8 +71,21 @@ function renderRankings(){
   $('#priceRanking').innerHTML=list.slice(0,10).map((a,i)=>`<div class="rank-row"><span class="rank-no ${i<3?'top':''}">${String(i+1).padStart(2,'0')}</span><span class="rank-name">${a.n}<small class="rank-sub">${a.dong} · ${a.area} · ${a.age}년</small></span><span class="rank-bar"><i style="width:${a.price/maxPrice*100}%"></i></span><span class="rank-price">${state.type==='월세'?`${Math.round(a.price*mult/100)}만`:formatPrice(a.price*mult*mod)}<small>${state.type==='월세'?'월세 / 보증금 별도':state.type+' 실거래'}</small></span></div>`).join('');
   $('#pyeongRanking').innerHTML=[...list].sort((a,b)=>b.py-a.py).slice(0,10).map((a,i)=>`<div class="rank-row"><span class="rank-no ${i<3?'top':''}">${String(i+1).padStart(2,'0')}</span><span class="rank-name">${a.n}<small class="rank-sub">${a.dong} · ${a.area} · ${a.age}년</small></span><span class="rank-bar"><i style="width:${a.py/maxPy*100}%"></i></span><span class="rank-price">${state.type==='월세'?(a.py*mult/10).toFixed(1):Math.round(a.py*mult*mod).toLocaleString()}<small>만원 / 3.3㎡</small></span></div>`).join('');
 }
-function renderLocation(key){const d=locData[key];$('#locLabel').textContent=d.label;$('#locTitle').textContent=d.title;$('#locDesc').textContent=d.desc;$('#locScore').textContent=d.score;$('.score-ring').style.setProperty('--score',d.score);$('#locFacts').innerHTML=d.facts.map(f=>`<div class="detail-fact"><span>${f[0]}</span><b>${f[1]}</b><small>${f[2]}</small></div>`).join('');$('#locNote').textContent=d.note}
-function updateRegion(region){state.region=region;$('#regionSelect').value=region;$('#heroRegion').textContent=region==='전체'?'동구 전체':region;$('#mapRegion').textContent=region==='전체'?'동구 전체':region;const score=Math.round(82+currentMod()*.6);$('#mapTransit').textContent=score>=87?'A+':score>=83?'A':'B+';$('#mapSchool').textContent=score>=85?'A':'B+';$('#mapLife').textContent=score>=86?'A':'A−';renderAll()}
+function selectSchool(name){
+  const school=schoolData.find(s=>s.name===name)||schoolData[0];
+  $$('.school-chip').forEach(b=>b.classList.toggle('active',b.dataset.school===school.name));
+  $$('.school-map-pin').forEach(b=>b.classList.toggle('active',b.dataset.school===school.name));
+  $('#schoolSelected').innerHTML=`<div><span>선택 학교</span><b>${school.name}</b><p>${school.feature}</p></div><div><span>학교 유형</span><b>${school.type}</b></div><div><span>생활권</span><b>${school.dong}</b></div><div><span>예상 접근</span><b>${school.walk}</b><p>${school.classes}</p></div>`;
+}
+function renderSchoolExplorer(){
+  const matches=state.region==='전체'?schoolData:schoolData.filter(s=>s.dong===state.region);
+  const list=matches.length?matches:schoolData.slice(0,4);
+  $('#schoolList').innerHTML=list.map((s,i)=>`<button class="school-chip ${i===0?'active':''}" data-school="${s.name}"><b>${s.name}</b><span>${s.dong} · ${s.type.replace('공립 ','')}</span></button>`).join('');
+  $$('.school-chip').forEach(b=>b.addEventListener('click',()=>selectSchool(b.dataset.school)));
+  selectSchool(list[0].name);
+}
+function renderLocation(key){const d=locData[key];$('#locLabel').textContent=d.label;$('#locTitle').textContent=d.title;$('#locDesc').textContent=d.desc;$('#locScore').textContent=d.score;$('.score-ring').style.setProperty('--score',d.score);$('#locFacts').innerHTML=d.facts.map(f=>`<div class="detail-fact"><span>${f[0]}</span><b>${f[1]}</b><small>${f[2]}</small></div>`).join('');$('#locNote').textContent=d.note;const schoolMode=key==='school';$('#schoolExplorer').hidden=!schoolMode;$('#locationDetail').classList.toggle('school-mode',schoolMode);if(schoolMode)renderSchoolExplorer()}
+function updateRegion(region){state.region=region;$('#regionSelect').value=region;$('#heroRegion').textContent=region==='전체'?'동구 전체':region;$('#mapRegion').textContent=region==='전체'?'동구 전체':region;const score=Math.round(82+currentMod()*.6);$('#mapTransit').textContent=score>=87?'A+':score>=83?'A':'B+';$('#mapSchool').textContent=score>=85?'A':'B+';$('#mapLife').textContent=score>=86?'A':'A−';renderAll();if($('.location-tab.active')?.dataset.loc==='school')renderSchoolExplorer()}
 function renderAll(){renderMetrics();renderChart();renderRankings()}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),2200)}
 
@@ -85,6 +108,7 @@ $('#applyButton').addEventListener('click',()=>{state.startDate=$('#startDate').
 $('#searchInput').addEventListener('input',renderRankings);
 $$('.location-tab').forEach(b=>b.addEventListener('click',()=>{$$('.location-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderLocation(b.dataset.loc)}));
 $$('.map-pin').forEach(b=>b.addEventListener('click',()=>{updateRegion(b.dataset.region);toast(`${b.dataset.region} 생활권을 선택했습니다.`)}));$('#resetMap').addEventListener('click',()=>updateRegion('전체'));
+$$('.school-map-pin').forEach(b=>{b.addEventListener('click',()=>{const school=schoolData.find(s=>s.name===b.dataset.school);if(school)updateRegion(school.dong);const schoolTab=$('.location-tab[data-loc="school"]');$$('.location-tab').forEach(x=>x.classList.remove('active'));schoolTab.classList.add('active');renderLocation('school');selectSchool(b.dataset.school);document.getElementById('location').scrollIntoView({behavior:'smooth'});toast(`${b.dataset.school} 정보를 열었습니다.`)});b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.dispatchEvent(new Event('click'))}})});
 $$('.nav-link').forEach(b=>b.addEventListener('click',()=>{document.getElementById(b.dataset.scroll).scrollIntoView({behavior:'smooth'});$$('.nav-link').forEach(x=>x.classList.remove('active'));b.classList.add('active')}));
 $$('.mini-info').forEach(b=>b.addEventListener('click',()=>toast(b.dataset.tip)));$$('[data-expand]').forEach(b=>b.addEventListener('click',()=>toast('현재 조건의 상위 10개 단지를 표시하고 있습니다.')));
 const dialog=$('#infoDialog');$('#helpButton').addEventListener('click',()=>dialog.showModal());$('.dialog-close').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
