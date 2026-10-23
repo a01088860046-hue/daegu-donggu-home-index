@@ -1,4 +1,4 @@
-const state={region:'전체',date:'2026년 9월',type:'매매',period:1};
+const state={region:'전체',startDate:'',endDate:'',type:'매매',period:1};
 const regionMods={전체:0,'신천동':9.4,'신암동':2.7,'효목동':1.2,'봉무동':7.1,'불로동':-5.8,'각산동':3.9,'율하동':4.8,'지묘동':-1.9,'검사동':-4.1};
 const typeData={
   '매매':{index:104.8,change:'+0.62%',avg:43820,pyeong:1438,count:286,insight:'매매 지수 3개월 연속 상승',sub:'혁신도시·동대구역 생활권이 상승을 견인했어요.',series:[99.2,99.6,99.9,100.1,100.6,101.1,101.7,102.0,102.8,103.3,104.1,104.8]},
@@ -29,13 +29,19 @@ const locData={
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 function formatPrice(v){return v>=10000?`${Math.floor(v/10000)}억 ${Math.round(v%10000).toLocaleString()}`:Math.round(v).toLocaleString()}
 function currentMod(){return regionMods[state.region]||0}
+function daysFromToday(value){
+  if(!value)return 0;
+  const target=new Date(`${value}T12:00:00+09:00`),now=new Date();
+  return Math.max(0,Math.round((now-target)/86400000));
+}
 function renderMetrics(){
-  const d=typeData[state.type],m=currentMod(),dateShift=-($('#dateSelect').selectedIndex*.28);
+  const d=typeData[state.type],m=currentMod(),dateShift=-(Math.min(daysFromToday($('#endDate').value),365)*.003);
   const index=d.index+m*.12+dateShift,avg=d.avg*(1+m/100+dateShift/100);
   $('#indexValue').textContent=index.toFixed(1);$('#indexChange').textContent=d.change;
   $('#avgPrice').textContent=state.type==='월세'?`${Math.round(avg)} / 1억`:formatPrice(avg);
   $('#pyeongPrice').textContent=state.type==='월세'?d.pyeong.toFixed(1):Math.round(d.pyeong*(1+m/100)).toLocaleString();
-  $('#dealCount').textContent=Math.max(31,Math.round(d.count*(1+(m/100)*.6)-$('#dateSelect').selectedIndex*7)).toLocaleString();
+  const rangeDays=Math.max(1,Math.round((new Date($('#endDate').value)-new Date($('#startDate').value))/86400000)+1);
+  $('#dealCount').textContent=Math.max(1,Math.round(d.count*(1+(m/100)*.6)*(Math.min(rangeDays,31)/31))).toLocaleString();
   $('#chartSummary').textContent=index.toFixed(1);$('#chartModeLabel').textContent=`${state.type} 지수`;
   $('#heroInsight').textContent=d.insight;$('#heroInsightSub').textContent=d.sub;
 }
@@ -60,14 +66,26 @@ function updateRegion(region){state.region=region;$('#regionSelect').value=regio
 function renderAll(){renderMetrics();renderChart();renderRankings()}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),2200)}
 
-$('#regionSelect').addEventListener('change',e=>updateRegion(e.target.value));$('#dateSelect').addEventListener('change',e=>{state.date=e.target.value});
+function setDailyDates(){
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const pick=t=>parts.find(p=>p.type===t).value;
+  const today=`${pick('year')}-${pick('month')}-${pick('day')}`;
+  const firstDay=`${pick('year')}-${pick('month')}-01`;
+  $('#todayDate').textContent=`${pick('year')}.${pick('month')}.${pick('day')}`;
+  $('#startDate').value=firstDay;$('#endDate').value=today;
+  $('#startDate').max=today;$('#endDate').max=today;
+  state.startDate=firstDay;state.endDate=today;
+}
+$('#regionSelect').addEventListener('change',e=>updateRegion(e.target.value));
+$('#startDate').addEventListener('change',e=>{state.startDate=e.target.value;$('#endDate').min=e.target.value});
+$('#endDate').addEventListener('change',e=>{state.endDate=e.target.value;$('#startDate').max=e.target.value});
 $$('#dealType button').forEach(b=>b.addEventListener('click',()=>{$$('#dealType button').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.type=b.dataset.type;renderAll()}));
 $$('#periodControl button').forEach(b=>b.addEventListener('click',()=>{$$('#periodControl button').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.period=+b.dataset.period;renderChart()}));
-$('#applyButton').addEventListener('click',()=>{state.date=$('#dateSelect').value;renderAll();toast(`${state.date} · ${state.region==='전체'?'동구 전체':state.region} · ${state.type} 기준으로 갱신했습니다.`)});
+$('#applyButton').addEventListener('click',()=>{state.startDate=$('#startDate').value;state.endDate=$('#endDate').value;if(!state.startDate||!state.endDate||state.startDate>state.endDate){toast('조회 기간을 올바르게 선택해 주세요.');return}renderAll();toast(`${state.startDate} ~ ${state.endDate} · ${state.region==='전체'?'동구 전체':state.region} · ${state.type} 기준으로 갱신했습니다.`)});
 $('#searchInput').addEventListener('input',renderRankings);
 $$('.location-tab').forEach(b=>b.addEventListener('click',()=>{$$('.location-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderLocation(b.dataset.loc)}));
 $$('.map-pin').forEach(b=>b.addEventListener('click',()=>{updateRegion(b.dataset.region);toast(`${b.dataset.region} 생활권을 선택했습니다.`)}));$('#resetMap').addEventListener('click',()=>updateRegion('전체'));
 $$('.nav-link').forEach(b=>b.addEventListener('click',()=>{document.getElementById(b.dataset.scroll).scrollIntoView({behavior:'smooth'});$$('.nav-link').forEach(x=>x.classList.remove('active'));b.classList.add('active')}));
 $$('.mini-info').forEach(b=>b.addEventListener('click',()=>toast(b.dataset.tip)));$$('[data-expand]').forEach(b=>b.addEventListener('click',()=>toast('현재 조건의 상위 10개 단지를 표시하고 있습니다.')));
 const dialog=$('#infoDialog');$('#helpButton').addEventListener('click',()=>dialog.showModal());$('.dialog-close').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
-renderLocation('school');renderAll();
+setDailyDates();renderLocation('school');renderAll();
