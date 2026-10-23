@@ -57,6 +57,10 @@
             <option>율하동</option><option>지묘동</option><option>검사동</option>
           </select>
         </label>
+        <div class="filter-field area-fixed" aria-label="면적 기준 전용 84제곱미터형">
+          <span>면적 기준</span>
+          <strong>전용 84㎡형</strong>
+        </div>
         <label class="filter-field date-field">
           <span>시작일</span>
           <input type="date" id="startDate" aria-label="조회 시작일" />
@@ -89,7 +93,7 @@
           <p><b class="positive" id="indexChange">+0.62%</b> 전월 대비</p>
         </article>
         <article class="metric">
-          <div><span>평균 실거래가</span><button class="mini-info" data-tip="선택 조건의 전용면적 60㎡ 이상 거래 평균입니다.">i</button></div>
+          <div><span>평균 실거래가</span><button class="mini-info" data-tip="선택 조건의 전용면적 84㎡형 거래 평균입니다.">i</button></div>
           <strong id="avgPrice">4억 3,820</strong><small>만원</small>
           <p><b class="positive" id="avgChange">+1.8%</b> 전월 대비</p>
         </article>
@@ -175,7 +179,7 @@
       <section class="dashboard-grid rank-grid" id="ranking">
         <article class="card ranking-card">
           <div class="card-head">
-            <div><p class="card-kicker">TOP TRANSACTIONS</p><h2>아파트 실거래가 TOP 10</h2></div>
+            <div><p class="card-kicker">TOP TRANSACTIONS · 84㎡</p><h2>84형 아파트 실거래가 TOP 10</h2></div>
             <span class="unit">단위: 만원</span>
           </div>
           <div id="priceRanking" class="ranking-list"></div>
@@ -183,7 +187,7 @@
         </article>
         <article class="card ranking-card">
           <div class="card-head">
-            <div><p class="card-kicker">VALUE PER 3.3㎡</p><h2>아파트 평당가격 TOP 10</h2></div>
+            <div><p class="card-kicker">VALUE PER 3.3㎡ · 84㎡</p><h2>84형 아파트 평당가격 TOP 10</h2></div>
             <span class="unit">단위: 만원/평</span>
           </div>
           <div id="pyeongRanking" class="ranking-list"></div>
@@ -249,7 +253,7 @@
     <button class="dialog-close" aria-label="닫기">×</button>
     <span class="dialog-kicker">DATA NOTE</span>
     <h2>대시보드 데이터 안내</h2>
-    <p>가격·거래량·순위는 <b>국토교통부 아파트 매매 및 전월세 실거래가 OpenAPI</b> 자료를 사용합니다. 취소·해제 거래를 제외하며 매일 자동 갱신됩니다.</p>
+    <p>가격·거래량·순위는 <b>전용면적 84.00㎡ 이상 85.00㎡ 미만</b> 거래만 비교하며, 국토교통부 아파트 매매 및 전월세 실거래가 OpenAPI 자료를 사용합니다. 취소·해제 거래를 제외하고 매일 자동 갱신됩니다.</p>
     <div class="dialog-box"><b>계산 기준</b><span>평당가는 거래금액을 전용면적 3.3㎡ 기준으로 환산합니다. 월세 순위는 월세액을 기준으로 하며 보증금은 함께 표시합니다.</span></div>
   </dialog>
   <script src="app.js"></script>

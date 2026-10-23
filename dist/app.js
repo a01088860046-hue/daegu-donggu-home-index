@@ -1,4 +1,5 @@
 const state={region:'전체',startDate:'',endDate:'',type:'매매',period:1,transactions:[],dataMeta:null,dataReady:false};
+const AREA_MIN=84,AREA_MAX=85;
 const regionMods={전체:0,'신천동':9.4,'신암동':2.7,'효목동':1.2,'봉무동':7.1,'불로동':-5.8,'각산동':3.9,'율하동':4.8,'지묘동':-1.9,'검사동':-4.1};
 const typeData={
   '매매':{index:104.8,change:'+0.62%',avg:43820,pyeong:1438,count:286,insight:'매매 지수 3개월 연속 상승',sub:'혁신도시·동대구역 생활권이 상승을 견인했어요.',series:[99.2,99.6,99.9,100.1,100.6,101.1,101.7,102.0,102.8,103.3,104.1,104.8]},
@@ -21,6 +22,7 @@ const apartments=[
 function filteredTransactions({respectDates=true,respectSearch=true}={}){
   const query=$('#searchInput')?.value.trim()||'';
   return state.transactions.filter(t=>t.type===state.type
+    &&t.area>=AREA_MIN&&t.area<AREA_MAX
     &&(state.region==='전체'||t.dong===state.region)
     &&(!respectDates||(!state.startDate||t.date>=state.startDate)&&(!state.endDate||t.date<=state.endDate))
     &&(!respectSearch||!query||t.apartment.includes(query)));
@@ -38,7 +40,7 @@ async function loadTransactions(){
     state.dataMeta=payload.meta||null;state.dataReady=state.transactions.length>0;
     if(state.dataReady){
       const latest=state.transactions.reduce((v,t)=>t.date>v?t.date:v,'');
-      $('#dataFreshness').textContent=`국토교통부 실거래가 · ${latest} 계약까지`;
+      $('#dataFreshness').textContent=`전용 84㎡형 · 국토교통부 실거래가 · ${latest} 계약까지`;
     }else $('#dataFreshness').textContent='실거래 자료 첫 동기화 대기 중';
   }catch(error){
     console.error(error);$('#dataFreshness').textContent='실거래 자료를 불러오지 못했습니다';
