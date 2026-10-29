@@ -5,6 +5,7 @@ function filteredTransactions({respectDates=true,respectSearch=true}={}){
   const query=$('#searchInput')?.value.trim()||'';
   return state.transactions.filter(t=>t.type===state.type
     &&t.area>=AREA_MIN&&t.area<AREA_MAX
+    &&!isNeedsReview(t)
     &&(state.region==='전체'||t.dong===state.region)
     &&(!respectDates||(!state.startDate||t.date>=state.startDate)&&(!state.endDate||t.date<=state.endDate))
     &&(!respectSearch||!query||t.apartment.includes(query)));
@@ -14,12 +15,29 @@ function valueFor(t,type=t.type){return type==='월세'?t.monthlyRent:t.amount}
 function median(values){const a=[...values].sort((x,y)=>x-y);if(!a.length)return 0;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
 function average(values){return values.length?values.reduce((a,b)=>a+b,0)/values.length:0}
 function pyeongValue(t){return transactionValue(t)/(t.area/3.3)}
-function areaRows(type=state.type,start=state.startDate,end=state.endDate,region=state.region){return state.transactions.filter(t=>t.type===type&&t.area>=AREA_MIN&&t.area<AREA_MAX&&(region==='전체'||t.dong===region)&&(!start||t.date>=start)&&(!end||t.date<=end))}
+function rawAreaRows(type=state.type,start=state.startDate,end=state.endDate,region=state.region){return state.transactions.filter(t=>t.type===type&&t.area>=AREA_MIN&&t.area<AREA_MAX&&(region==='전체'||t.dong===region)&&(!start||t.date>=start)&&(!end||t.date<=end))}
+function isNeedsReview(t){
+  if(t.type!=='매매'||!t.amount)return false;
+  const lookback=dateShift(t.date,-365);
+  const comps=state.transactions.filter(c=>c.type==='매매'&&c.apartment===t.apartment&&c.area>=AREA_MIN&&c.area<AREA_MAX&&c.date<t.date&&c.date>=lookback&&c.amount>0).map(c=>c.amount);
+  if(comps.length<5)return false;
+  const typical=median(comps),previousHigh=Math.max(...comps);
+  return t.amount>typical*1.08&&t.amount>previousHigh*1.04;
+}
+function areaRows(type=state.type,start=state.startDate,end=state.endDate,region=state.region){return rawAreaRows(type,start,end,region).filter(t=>!isNeedsReview(t))}
 function dateShift(value,days){const d=new Date(`${value}T12:00:00+09:00`);d.setDate(d.getDate()+days);return d.toISOString().slice(0,10)}
 function pctChange(current,previous){return previous?(current/previous-1)*100:null}
 function setChange(id,value,suffix='%'){const el=$(id);if(value===null||!Number.isFinite(value)){el.textContent='비교 자료 없음';el.className='';return}const sign=value>0?'+':value<0?'−':'';el.textContent=`${sign}${Math.abs(value).toFixed(1)}${suffix}`;el.className=value>0?'positive':value<0?'negative':''}
 function currentMonth(){return (state.endDate||new Date().toISOString().slice(0,10)).slice(0,7)}
 function dataEmpty(target,message){target.innerHTML=`<div class="data-empty"><b>${message}</b><span>조회 조건을 바꾸거나 데이터 갱신 상태를 확인해 주세요.</span></div>`}
+function renderReviewNotice(){
+  const flagged=rawAreaRows(state.type,state.startDate,state.endDate,state.region).filter(isNeedsReview);
+  const notice=$('#reviewNotice');
+  if(!flagged.length){notice.hidden=true;notice.textContent='';return}
+  const first=flagged[0],extra=flagged.length>1?` 외 ${flagged.length-1}건`:'';
+  notice.hidden=false;
+  notice.innerHTML=`<b>확인 필요 거래 ${flagged.length}건</b><span>${first.apartment} · ${first.date} · ${formatPrice(first.amount)}${extra}</span><em>최근 동일 단지 84㎡ 거래 흐름에서 크게 벗어난 신규 신고로, 대표가격·지수·TOP 10에서 임시 제외했습니다. 정정·해제 여부를 매일 다시 확인합니다.</em>`;
+}
 async function loadTransactions(){
   try{
     const response=await fetch(`data/transactions.json?v=${Date.now()}`,{cache:'no-store'});
@@ -128,7 +146,7 @@ function renderSchoolExplorer(){
 }
 function renderLocation(key){const d=locData[key];$('#locLabel').textContent=d.label;$('#locTitle').textContent=d.title;$('#locDesc').textContent=d.desc;$('#locScore').textContent=d.score;$('.score-ring').style.setProperty('--score',d.score);$('#locFacts').innerHTML=d.facts.map(f=>`<div class="detail-fact"><span>${f[0]}</span><b>${f[1]}</b><small>${f[2]}</small></div>`).join('');$('#locNote').textContent=d.note;const schoolMode=key==='school';$('#schoolExplorer').hidden=!schoolMode;$('#locationDetail').classList.toggle('school-mode',schoolMode);if(schoolMode)renderSchoolExplorer()}
 function updateRegion(region){state.region=region;$('#regionSelect').value=region;$('#heroRegion').textContent=region==='전체'?'동구 전체':region;$('#mapRegion').textContent=region==='전체'?'동구 전체':region;renderAll();if($('.location-tab.active')?.dataset.loc==='school')renderSchoolExplorer()}
-function renderAll(){renderMetrics();renderDailyBrief();renderChart();renderRankings()}
+function renderAll(){renderReviewNotice();renderMetrics();renderDailyBrief();renderChart();renderRankings()}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),2200)}
 
 function setDailyDates(){
