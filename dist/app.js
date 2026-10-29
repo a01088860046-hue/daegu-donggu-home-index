@@ -1,23 +1,5 @@
 const state={region:'전체',startDate:'',endDate:'',type:'매매',period:1,transactions:[],dataMeta:null,dataReady:false};
 const AREA_MIN=84,AREA_MAX=85;
-const regionMods={전체:0,'신천동':9.4,'신암동':2.7,'효목동':1.2,'봉무동':7.1,'불로동':-5.8,'각산동':3.9,'율하동':4.8,'지묘동':-1.9,'검사동':-4.1};
-const typeData={
-  '매매':{index:104.8,change:'+0.62%',avg:43820,pyeong:1438,count:286,insight:'매매 지수 3개월 연속 상승',sub:'혁신도시·동대구역 생활권이 상승을 견인했어요.',series:[99.2,99.6,99.9,100.1,100.6,101.1,101.7,102.0,102.8,103.3,104.1,104.8]},
-  '전세':{index:103.1,change:'+0.38%',avg:28640,pyeong:942,count:214,insight:'전세 수요, 역세권 중심 회복',sub:'신천·율하동 중소형 단지의 회전율이 빨라졌어요.',series:[99.4,99.1,99.6,100.0,100.2,100.7,101.1,101.5,101.9,102.2,102.7,103.1]},
-  '월세':{index:101.7,change:'+0.21%',avg:86,pyeong:3.2,count:172,insight:'월세 거래량은 전월과 비슷',sub:'보증금 1억 미만·월 70~100만 원 구간이 중심이에요.',series:[100,100.2,100.1,100.4,100.6,100.8,100.9,101.0,101.2,101.4,101.5,101.7]}
-};
-const apartments=[
-  {n:'동대구역 화성파크드림',dong:'신암동',price:98500,py:2410,area:'84㎡',age:'2023'},
-  {n:'동대구역 센텀 화성파크드림',dong:'신천동',price:93200,py:2350,area:'84㎡',age:'2022'},
-  {n:'동대구역 더샵 센터시티',dong:'신천동',price:89500,py:2290,area:'84㎡',age:'2022'},
-  {n:'이안 센트럴D',dong:'신암동',price:85200,py:2210,area:'84㎡',age:'2021'},
-  {n:'안심역 코오롱하늘채',dong:'괴전동',price:76800,py:1980,area:'84㎡',age:'2017'},
-  {n:'율하 롯데캐슬 TOPCLASS',dong:'율하동',price:74100,py:1910,area:'84㎡',age:'2015'},
-  {n:'이시아폴리스 더샵 4차',dong:'봉무동',price:71800,py:1860,area:'84㎡',age:'2014'},
-  {n:'대구혁신 LH이노힐즈',dong:'각산동',price:69400,py:1810,area:'84㎡',age:'2016'},
-  {n:'태왕메트로시티',dong:'효목동',price:64800,py:1760,area:'84㎡',age:'2003'},
-  {n:'봉무청구새들마을',dong:'봉무동',price:61100,py:1680,area:'84㎡',age:'2001'}
-];
 
 function filteredTransactions({respectDates=true,respectSearch=true}={}){
   const query=$('#searchInput')?.value.trim()||'';
@@ -28,8 +10,15 @@ function filteredTransactions({respectDates=true,respectSearch=true}={}){
     &&(!respectSearch||!query||t.apartment.includes(query)));
 }
 function transactionValue(t){return state.type==='월세'?t.monthlyRent:t.amount}
+function valueFor(t,type=t.type){return type==='월세'?t.monthlyRent:t.amount}
 function median(values){const a=[...values].sort((x,y)=>x-y);if(!a.length)return 0;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
+function average(values){return values.length?values.reduce((a,b)=>a+b,0)/values.length:0}
 function pyeongValue(t){return transactionValue(t)/(t.area/3.3)}
+function areaRows(type=state.type,start=state.startDate,end=state.endDate,region=state.region){return state.transactions.filter(t=>t.type===type&&t.area>=AREA_MIN&&t.area<AREA_MAX&&(region==='전체'||t.dong===region)&&(!start||t.date>=start)&&(!end||t.date<=end))}
+function dateShift(value,days){const d=new Date(`${value}T12:00:00+09:00`);d.setDate(d.getDate()+days);return d.toISOString().slice(0,10)}
+function pctChange(current,previous){return previous?(current/previous-1)*100:null}
+function setChange(id,value,suffix='%'){const el=$(id);if(value===null||!Number.isFinite(value)){el.textContent='비교 자료 없음';el.className='';return}const sign=value>0?'+':value<0?'−':'';el.textContent=`${sign}${Math.abs(value).toFixed(1)}${suffix}`;el.className=value>0?'positive':value<0?'negative':''}
+function currentMonth(){return (state.endDate||new Date().toISOString().slice(0,10)).slice(0,7)}
 function dataEmpty(target,message){target.innerHTML=`<div class="data-empty"><b>${message}</b><span>조회 조건을 바꾸거나 데이터 갱신 상태를 확인해 주세요.</span></div>`}
 async function loadTransactions(){
   try{
@@ -40,7 +29,8 @@ async function loadTransactions(){
     state.dataMeta=payload.meta||null;state.dataReady=state.transactions.length>0;
     if(state.dataReady){
       const latest=state.transactions.reduce((v,t)=>t.date>v?t.date:v,'');
-      $('#dataFreshness').textContent=`전용 84㎡형 · 국토교통부 실거래가 · ${latest} 계약까지`;
+      const generated=new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(state.dataMeta.generatedAt));
+      $('#dataFreshness').textContent=`전용 84㎡형 · 국토교통부 실거래가 · ${latest} 계약까지 · ${generated} 갱신`;
     }else $('#dataFreshness').textContent='실거래 자료 첫 동기화 대기 중';
   }catch(error){
     console.error(error);$('#dataFreshness').textContent='실거래 자료를 불러오지 못했습니다';
@@ -66,52 +56,51 @@ const locData={
 };
 
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
-function formatPrice(v){return v>=10000?`${Math.floor(v/10000)}억 ${Math.round(v%10000).toLocaleString()}`:Math.round(v).toLocaleString()}
-function currentMod(){return regionMods[state.region]||0}
-function daysFromToday(value){
-  if(!value)return 0;
-  const target=new Date(`${value}T12:00:00+09:00`),now=new Date();
-  return Math.max(0,Math.round((now-target)/86400000));
+function formatPrice(v){
+  const rounded=Math.round(v);
+  if(rounded<10000)return rounded.toLocaleString();
+  const remainder=rounded%10000;
+  return `${Math.floor(rounded/10000)}억${remainder?` ${remainder.toLocaleString()}`:''}`;
 }
 function renderMetrics(){
-  if(state.dataReady){
-    const rows=filteredTransactions({respectSearch:false}),values=rows.map(transactionValue).filter(Boolean),avg=values.length?values.reduce((a,b)=>a+b,0)/values.length:0;
-    const py=rows.length?rows.reduce((sum,t)=>sum+pyeongValue(t),0)/rows.length:0;
-    const monthly=new Map();filteredTransactions({respectDates:false,respectSearch:false}).forEach(t=>{const k=t.date.slice(0,7);if(!monthly.has(k))monthly.set(k,[]);monthly.get(k).push(transactionValue(t))});
-    const keys=[...monthly.keys()].sort(),base=median(monthly.get(keys[0])||[]),last=median(monthly.get(keys.at(-1))||[]),index=base&&last?last/base*100:100;
-    $('#indexValue').textContent=index.toFixed(1);$('#indexChange').textContent='실거래 기준';
-    $('#avgPrice').textContent=state.type==='월세'?`${Math.round(avg).toLocaleString()}만`:formatPrice(avg);
-    $('#pyeongPrice').textContent=py?Math.round(py).toLocaleString():'—';$('#dealCount').textContent=rows.length.toLocaleString();
-    $('#chartSummary').textContent=index.toFixed(1);$('#chartModeLabel').textContent=`${state.type} 지수`;
-    $('#heroInsight').textContent=rows.length?`${state.type} 실거래 ${rows.length.toLocaleString()}건 조회`:'선택 기간에 신고된 거래가 없습니다';
-    $('#heroInsightSub').textContent='국토교통부 신고자료에서 취소·해제 거래를 제외했습니다.';return;
-  }
-  const d=typeData[state.type],m=currentMod(),dateShift=-(Math.min(daysFromToday($('#endDate').value),365)*.003);
-  const index=d.index+m*.12+dateShift,avg=d.avg*(1+m/100+dateShift/100);
-  $('#indexValue').textContent=index.toFixed(1);$('#indexChange').textContent=d.change;
-  $('#avgPrice').textContent=state.type==='월세'?`${Math.round(avg)} / 1억`:formatPrice(avg);
-  $('#pyeongPrice').textContent=state.type==='월세'?d.pyeong.toFixed(1):Math.round(d.pyeong*(1+m/100)).toLocaleString();
-  const rangeDays=Math.max(1,Math.round((new Date($('#endDate').value)-new Date($('#startDate').value))/86400000)+1);
-  $('#dealCount').textContent=Math.max(1,Math.round(d.count*(1+(m/100)*.6)*(Math.min(rangeDays,31)/31))).toLocaleString();
-  $('#chartSummary').textContent=index.toFixed(1);$('#chartModeLabel').textContent=`${state.type} 지수`;
-  $('#heroInsight').textContent=d.insight;$('#heroInsightSub').textContent=d.sub;
+  if(!state.dataReady)return;
+  const rows=filteredTransactions({respectSearch:false}),values=rows.map(transactionValue).filter(Boolean),avg=average(values),py=average(rows.map(pyeongValue));
+  const days=Math.max(1,Math.round((new Date(state.endDate)-new Date(state.startDate))/86400000)+1),prevEnd=dateShift(state.startDate,-1),prevStart=dateShift(prevEnd,-days+1),prevRows=areaRows(state.type,prevStart,prevEnd),prevAvg=average(prevRows.map(t=>valueFor(t)).filter(Boolean)),prevPy=average(prevRows.map(t=>valueFor(t)/(t.area/3.3)));
+  const monthly=new Map();areaRows(state.type,'','',state.region).forEach(t=>{const k=t.date.slice(0,7);if(!monthly.has(k))monthly.set(k,[]);monthly.get(k).push(valueFor(t))});
+  const keys=[...monthly.keys()].sort().slice(-12),monthMedians=keys.map(k=>median(monthly.get(k))),base=monthMedians[0]||1,last=monthMedians.at(-1)||0,previous=monthMedians.at(-2)||0,index=last/base*100,indexDelta=pctChange(last,previous);
+  $('#indexValue').textContent=index.toFixed(1);setChange('#indexChange',indexDelta);
+  $('#avgPrice').textContent=state.type==='월세'?`${Math.round(avg).toLocaleString()}만`:formatPrice(avg);
+  $('#pyeongPrice').textContent=py?Math.round(py).toLocaleString():'—';$('#dealCount').textContent=rows.length.toLocaleString();
+  setChange('#avgChange',pctChange(avg,prevAvg));setChange('#pyeongChange',pctChange(py,prevPy));setChange('#dealChange',pctChange(rows.length,prevRows.length));
+  const sales=areaRows('매매',state.startDate,state.endDate),leases=areaRows('전세',state.startDate,state.endDate),saleMedian=median(sales.map(t=>t.amount)),leaseMedian=median(leases.map(t=>t.amount)),rate=saleMedian?leaseMedian/saleMedian*100:0;
+  $('#jeonseRate').textContent=rate?rate.toFixed(1):'—';$('#jeonseNote').textContent=rate?'84형 중위가격 기준':'비교 자료 없음';
+  $('#chartSummary').textContent=index.toFixed(1);$('#chartModeLabel').textContent=`${state.type} 84형 지수`;setChange('#chartChange',indexDelta);
+  $('#heroInsight').textContent=rows.length?`${state.type} 84형 실거래 ${rows.length.toLocaleString()}건`:'선택 기간에 신고된 거래가 없습니다';
+  $('#heroInsightSub').textContent=`직전 동기간 ${prevRows.length.toLocaleString()}건 · 취소·해제 거래 제외`;
+}
+function renderDailyBrief(){
+  if(!state.dataReady)return;
+  const month=currentMonth(),monthStart=`${month}-01`,monthRows=areaRows(state.type,monthStart,state.endDate),monthValues=monthRows.map(t=>valueFor(t)).filter(Boolean),monthMedian=median(monthValues);
+  const prevMonthDate=new Date(`${monthStart}T12:00:00+09:00`);prevMonthDate.setMonth(prevMonthDate.getMonth()-1);const prevMonth=prevMonthDate.toISOString().slice(0,7),prevMonthRows=areaRows(state.type,`${prevMonth}-01`,`${prevMonth}-31`),prevMonthMedian=median(prevMonthRows.map(t=>valueFor(t)).filter(Boolean)),monthDelta=pctChange(monthMedian,prevMonthMedian);
+  const groups=new Map();monthRows.forEach(t=>groups.set(t.apartment,(groups.get(t.apartment)||0)+1));const active=[...groups.entries()].sort((a,b)=>b[1]-a[1])[0]||['거래 없음',0];
+  const highest=[...monthRows].sort((a,b)=>valueFor(b)-valueFor(a))[0];
+  const metaNew=state.region==='전체'?state.dataMeta?.newSincePrevious?.[state.type]:state.dataMeta?.newByDong?.[state.region]?.[state.type];const newText=Number.isFinite(metaNew)?`${metaNew.toLocaleString()}건`:'집계 준비 중';
+  const deltaText=monthDelta===null?'비교 자료 없음':`${monthDelta>0?'+':monthDelta<0?'−':''}${Math.abs(monthDelta).toFixed(1)}%`;
+  $('#briefList').innerHTML=`<li><span>1</span><p>직전 갱신 이후 새로 공개된 ${state.region==='전체'?'동구 전체':state.region} 84형 ${state.type}는 <b>${newText}</b>입니다.</p></li><li><span>2</span><p>${month.replace('-','년 ')}월 계약 누적은 <b>${monthRows.length.toLocaleString()}건</b>, 거래가 가장 모인 단지는 <b>${active[0]} ${active[1]}건</b>입니다.</p></li><li><span>3</span><p>이번 달 중위가격은 <b>${state.type==='월세'?`${Math.round(monthMedian).toLocaleString()}만원`:formatPrice(monthMedian)}</b>, 직전 달 대비 <b class="${monthDelta>0?'positive':monthDelta<0?'negative':''}">${deltaText}</b>입니다${highest?`, 최고 거래는 ${highest.apartment} ${state.type==='월세'?`${highest.monthlyRent.toLocaleString()}만원`:formatPrice(highest.amount)}입니다.`:'.'}</p></li>`;
+  const generated=new Date(state.dataMeta.generatedAt);$('#reportDate').textContent=new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',month:'long',day:'numeric',weekday:'short'}).format(generated);
+  $('#briefSource').textContent=`출처: 국토교통부 실거래가 공개 API · ${new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(generated)} 조회 · 최근 계약은 신고기한으로 늘어날 수 있습니다.`;
+  const ninetyStart=dateShift(state.endDate,-89),recent=areaRows(state.type,ninetyStart,state.endDate),recentGroups=new Map();recent.forEach(t=>recentGroups.set(t.apartment,(recentGroups.get(t.apartment)||0)+1));const featured=[...recentGroups.entries()].sort((a,b)=>b[1]-a[1])[0]||active;const featuredRows=recent.filter(t=>t.apartment===featured[0]).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  $('#featuredComplexName').textContent=featured[0];$('#featuredComplexCount').textContent=`최근 90일 ${featured[1]}건`;const first=featuredRows[0];$('#featuredComplexMeta').textContent=first?`${first.dong} · 전용 84㎡형 · ${state.type} 거래 집중 단지`:'선택 조건에 해당하는 거래가 없습니다.';
+  $('#recentDeals').innerHTML=featuredRows.length?`<div class="recent-row recent-head"><span>계약일</span><span>층</span><span>${state.type==='월세'?'보증금 / 월세':'거래금액'}</span></div>${featuredRows.map(t=>`<div class="recent-row"><span>${t.date.slice(5).replace('-','.')}</span><span>${t.floor}층</span><b>${state.type==='월세'?`${formatPrice(t.amount)} / ${t.monthlyRent.toLocaleString()}만`:formatPrice(t.amount)}</b></div>`).join('')}`:`<div class="data-empty compact"><b>최근 거래가 없습니다.</b></div>`;
 }
 function renderChart(){
-  if(state.dataReady){
-    const cutoff=new Date();cutoff.setMonth(cutoff.getMonth()-state.period*12);
-    const grouped=new Map();filteredTransactions({respectDates:false,respectSearch:false}).filter(t=>new Date(`${t.date}T00:00:00`)>=cutoff).forEach(t=>{const k=t.date.slice(0,7);if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(transactionValue(t))});
-    const keys=[...grouped.keys()].sort();const medians=keys.map(k=>median(grouped.get(k))),base=medians[0]||1,vals=medians.map(v=>v/base*100);
-    if(vals.length<2){dataEmpty($('#lineChart'),'차트를 만들기에 거래 월이 부족합니다.');return}
-    const w=760,h=210,p={l:38,r:18,t:20,b:28},min=Math.floor(Math.min(...vals)-1),max=Math.ceil(Math.max(...vals)+1),x=i=>p.l+i*(w-p.l-p.r)/(vals.length-1),y=v=>p.t+(max-v)*(h-p.t-p.b)/Math.max(1,max-min),pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(' '),area=`M${x(0)},${h-p.b} L${pts.replaceAll(' ',',')} L${x(vals.length-1)},${h-p.b} Z`,ticks=[min,(min+max)/2,max],labelIdx=[0,Math.floor((keys.length-1)/2),keys.length-1];
-    $('#lineChart').innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff705d" stop-opacity=".22"/><stop offset="1" stop-color="#ff705d" stop-opacity="0"/></linearGradient></defs>${ticks.map(t=>`<line class="grid-line" x1="${p.l}" y1="${y(t)}" x2="${w-p.r}" y2="${y(t)}"/><text class="axis-label" x="0" y="${y(t)+3}">${t.toFixed(0)}</text>`).join('')}<path class="area-path" d="${area}"/><polyline class="line-path" points="${pts}"/><circle class="line-point" cx="${x(vals.length-1)}" cy="${y(vals.at(-1))}" r="4"/>${labelIdx.map((i,j)=>`<text class="axis-label" x="${x(i)}" y="${h-7}" text-anchor="${j===0?'start':j===2?'end':'middle'}">${keys[i].replace('-','.')}</text>`).join('')}</svg>`;return;
-  }
-  const d=typeData[state.type],m=currentMod()*.12;let vals=d.series.map((v,i)=>v+m*(i/11));
-  if(state.period>1){const n=state.period*12;vals=Array.from({length:n},(_,i)=>{const x=i/(n-1);return 91+(d.series.at(-1)+m-91)*x+Math.sin(i*.8)*.34+(i>n*.72?x*.8:0)})}
-  const w=760,h=210,p={l:38,r:18,t:20,b:28};const min=Math.floor(Math.min(...vals)-1),max=Math.ceil(Math.max(...vals)+1);
-  const x=i=>p.l+i*(w-p.l-p.r)/(vals.length-1),y=v=>p.t+(max-v)*(h-p.t-p.b)/(max-min);
-  const pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(' ');const area=`M${x(0)},${h-p.b} L${pts.replaceAll(' ',',')} L${x(vals.length-1)},${h-p.b} Z`;
-  const ticks=[min,(min+max)/2,max];const dateLabels=state.period===1?['25.10','26.01','26.04','26.07','26.09']:state.period===3?['23.10','24.07','25.04','26.01','26.09']:['21.10','23.01','24.04','25.07','26.09'];
-  $('#lineChart').innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff705d" stop-opacity=".22"/><stop offset="1" stop-color="#ff705d" stop-opacity="0"/></linearGradient></defs>${ticks.map(t=>`<line class="grid-line" x1="${p.l}" y1="${y(t)}" x2="${w-p.r}" y2="${y(t)}"/><text class="axis-label" x="0" y="${y(t)+3}">${t.toFixed(0)}</text>`).join('')}<path class="area-path" d="${area}"/><polyline class="line-path" points="${pts}"/>${vals.map((v,i)=>i===vals.length-1?`<circle class="line-point" cx="${x(i)}" cy="${y(v)}" r="4"/>`:``).join('')}<line class="hover-guide" x1="${x(vals.length-1)}" y1="${p.t}" x2="${x(vals.length-1)}" y2="${h-p.b}"/><rect class="chart-tooltip" x="${x(vals.length-1)-47}" y="${y(vals.at(-1))-31}" width="45" height="22" rx="5"/><text class="tooltip-text" x="${x(vals.length-1)-24.5}" y="${y(vals.at(-1))-17}" text-anchor="middle">${vals.at(-1).toFixed(1)}</text>${dateLabels.map((t,i)=>`<text class="axis-label" x="${p.l+i*(w-p.l-p.r)/(dateLabels.length-1)}" y="${h-7}" text-anchor="${i===0?'start':i===dateLabels.length-1?'end':'middle'}">${t}</text>`).join('')}</svg>`;
+  if(!state.dataReady){dataEmpty($('#lineChart'),'실거래 자료를 불러오고 있습니다.');return}
+  const cutoff=new Date();cutoff.setMonth(cutoff.getMonth()-state.period*12);
+  const grouped=new Map();filteredTransactions({respectDates:false,respectSearch:false}).filter(t=>new Date(`${t.date}T00:00:00`)>=cutoff).forEach(t=>{const k=t.date.slice(0,7);if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(transactionValue(t))});
+  const keys=[...grouped.keys()].sort();const medians=keys.map(k=>median(grouped.get(k))),base=medians[0]||1,vals=medians.map(v=>v/base*100);
+  if(vals.length<2){dataEmpty($('#lineChart'),'차트를 만들기에 거래 월이 부족합니다.');return}
+  const w=760,h=210,p={l:38,r:18,t:20,b:28},min=Math.floor(Math.min(...vals)-1),max=Math.ceil(Math.max(...vals)+1),x=i=>p.l+i*(w-p.l-p.r)/(vals.length-1),y=v=>p.t+(max-v)*(h-p.t-p.b)/Math.max(1,max-min),pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(' '),area=`M${x(0)},${h-p.b} L${pts.replaceAll(' ',',')} L${x(vals.length-1)},${h-p.b} Z`,ticks=[min,(min+max)/2,max],labelIdx=[0,Math.floor((keys.length-1)/2),keys.length-1];
+  $('#lineChart').innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff705d" stop-opacity=".22"/><stop offset="1" stop-color="#ff705d" stop-opacity="0"/></linearGradient></defs>${ticks.map(t=>`<line class="grid-line" x1="${p.l}" y1="${y(t)}" x2="${w-p.r}" y2="${y(t)}"/><text class="axis-label" x="0" y="${y(t)+3}">${t.toFixed(0)}</text>`).join('')}<path class="area-path" d="${area}"/><polyline class="line-path" points="${pts}"/><circle class="line-point" cx="${x(vals.length-1)}" cy="${y(vals.at(-1))}" r="4"/>${labelIdx.map((i,j)=>`<text class="axis-label" x="${x(i)}" y="${h-7}" text-anchor="${j===0?'start':j===2?'end':'middle'}">${keys[i].replace('-','.')}</text>`).join('')}</svg>`;
 }
 function renderRankings(){
   if(state.dataReady){
@@ -122,12 +111,7 @@ function renderRankings(){
     $('#priceRanking').innerHTML=top.map((t,i)=>row(t,i,transactionValue(t),maxPrice)).join('');
     $('#pyeongRanking').innerHTML=topPy.map((t,i)=>row(t,i,pyeongValue(t),maxPy,true)).join('');return;
   }
-  if(!state.dataReady){dataEmpty($('#priceRanking'),'국토교통부 실거래 자료 동기화 대기 중');dataEmpty($('#pyeongRanking'),'국토교통부 실거래 자료 동기화 대기 중');return}
-  const mult=state.type==='매매'?1:state.type==='전세'?.63:.024;const mod=1+currentMod()/100;
-  const filtered=apartments.filter(a=>(state.region==='전체'||a.dong===state.region)&&(!$('#searchInput').value||a.n.includes($('#searchInput').value.trim())));
-  const list=filtered.length?filtered:apartments;const maxPrice=Math.max(...list.map(a=>a.price));const maxPy=Math.max(...list.map(a=>a.py));
-  $('#priceRanking').innerHTML=list.slice(0,10).map((a,i)=>`<div class="rank-row"><span class="rank-no ${i<3?'top':''}">${String(i+1).padStart(2,'0')}</span><span class="rank-name">${a.n}<small class="rank-sub">${a.dong} · ${a.area} · ${a.age}년</small></span><span class="rank-bar"><i style="width:${a.price/maxPrice*100}%"></i></span><span class="rank-price">${state.type==='월세'?`${Math.round(a.price*mult/100)}만`:formatPrice(a.price*mult*mod)}<small>${state.type==='월세'?'월세 / 보증금 별도':state.type+' 실거래'}</small></span></div>`).join('');
-  $('#pyeongRanking').innerHTML=[...list].sort((a,b)=>b.py-a.py).slice(0,10).map((a,i)=>`<div class="rank-row"><span class="rank-no ${i<3?'top':''}">${String(i+1).padStart(2,'0')}</span><span class="rank-name">${a.n}<small class="rank-sub">${a.dong} · ${a.area} · ${a.age}년</small></span><span class="rank-bar"><i style="width:${a.py/maxPy*100}%"></i></span><span class="rank-price">${state.type==='월세'?(a.py*mult/10).toFixed(1):Math.round(a.py*mult*mod).toLocaleString()}<small>만원 / 3.3㎡</small></span></div>`).join('');
+  dataEmpty($('#priceRanking'),'국토교통부 실거래 자료 동기화 대기 중');dataEmpty($('#pyeongRanking'),'국토교통부 실거래 자료 동기화 대기 중');
 }
 function selectSchool(name){
   const school=schoolData.find(s=>s.name===name)||schoolData[0];
@@ -143,8 +127,8 @@ function renderSchoolExplorer(){
   selectSchool(list[0].name);
 }
 function renderLocation(key){const d=locData[key];$('#locLabel').textContent=d.label;$('#locTitle').textContent=d.title;$('#locDesc').textContent=d.desc;$('#locScore').textContent=d.score;$('.score-ring').style.setProperty('--score',d.score);$('#locFacts').innerHTML=d.facts.map(f=>`<div class="detail-fact"><span>${f[0]}</span><b>${f[1]}</b><small>${f[2]}</small></div>`).join('');$('#locNote').textContent=d.note;const schoolMode=key==='school';$('#schoolExplorer').hidden=!schoolMode;$('#locationDetail').classList.toggle('school-mode',schoolMode);if(schoolMode)renderSchoolExplorer()}
-function updateRegion(region){state.region=region;$('#regionSelect').value=region;$('#heroRegion').textContent=region==='전체'?'동구 전체':region;$('#mapRegion').textContent=region==='전체'?'동구 전체':region;const score=Math.round(82+currentMod()*.6);$('#mapTransit').textContent=score>=87?'A+':score>=83?'A':'B+';$('#mapSchool').textContent=score>=85?'A':'B+';$('#mapLife').textContent=score>=86?'A':'A−';renderAll();if($('.location-tab.active')?.dataset.loc==='school')renderSchoolExplorer()}
-function renderAll(){renderMetrics();renderChart();renderRankings()}
+function updateRegion(region){state.region=region;$('#regionSelect').value=region;$('#heroRegion').textContent=region==='전체'?'동구 전체':region;$('#mapRegion').textContent=region==='전체'?'동구 전체':region;renderAll();if($('.location-tab.active')?.dataset.loc==='school')renderSchoolExplorer()}
+function renderAll(){renderMetrics();renderDailyBrief();renderChart();renderRankings()}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),2200)}
 
 function setDailyDates(){

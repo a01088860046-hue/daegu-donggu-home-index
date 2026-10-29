@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const serviceKey = process.env.DATA_GO_KR_API_KEY;
 if (!serviceKey) throw new Error('DATA_GO_KR_API_KEY secret is missing.');
@@ -9,6 +9,11 @@ const endpoints = {
   sale: 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade',
   rent: 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent'
 };
+
+let previous = { meta: null, transactions: [] };
+try {
+  previous = JSON.parse(await readFile('dist/data/transactions.json', 'utf8'));
+} catch {}
 
 const decode = value => String(value ?? '')
   .replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&')
@@ -86,15 +91,28 @@ const clean = transactions
   .map(({ cancelled, ...t }) => t)
   .sort((a, b) => b.date.localeCompare(a.date));
 
+const transactionKey = t => [t.type,t.date,t.apartment,t.dong,t.area,t.floor,t.amount,t.monthlyRent].join('|');
+const previousKeys = new Set((previous.transactions || []).map(transactionKey));
+const newlyPublished = clean.filter(t => !previousKeys.has(transactionKey(t)));
+const newByType = Object.fromEntries(['매매','전세','월세'].map(type => [type,newlyPublished.filter(t => t.type === type).length]));
+const newByDong = {};
+for (const t of newlyPublished) {
+  newByDong[t.dong] ??= { 매매: 0, 전세: 0, 월세: 0 };
+  newByDong[t.dong][t.type] += 1;
+}
+
 const output = {
   meta: {
     source: '국토교통부 실거래가 공개자료 OpenAPI',
     lawdCd,
     region: '대구광역시 동구',
     generatedAt: new Date().toISOString(),
+    previousGeneratedAt: previous.meta?.generatedAt || null,
     from: months.at(-1),
     to: months[0],
-    count: clean.length
+    count: clean.length,
+    newSincePrevious: newByType,
+    newByDong
   },
   transactions: clean
 };

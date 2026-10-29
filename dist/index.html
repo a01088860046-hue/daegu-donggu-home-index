@@ -90,30 +90,43 @@
         <article class="metric active">
           <div><span>실거래가 가격지수</span><button class="mini-info" data-tip="기준 시점 대비 실거래 가격 흐름을 지수화한 값입니다.">i</button></div>
           <strong id="indexValue">104.8</strong>
-          <p><b class="positive" id="indexChange">+0.62%</b> 전월 대비</p>
+          <p><b id="indexChange">—</b> 직전 월 대비</p>
         </article>
         <article class="metric">
           <div><span>평균 실거래가</span><button class="mini-info" data-tip="선택 조건의 전용면적 84㎡형 거래 평균입니다.">i</button></div>
           <strong id="avgPrice">4억 3,820</strong><small>만원</small>
-          <p><b class="positive" id="avgChange">+1.8%</b> 전월 대비</p>
+          <p><b id="avgChange">—</b> 직전 동기간 대비</p>
         </article>
         <article class="metric">
           <div><span>평균 평당가</span><button class="mini-info" data-tip="실거래가를 계약면적 기준 3.3㎡로 환산한 참고 지표입니다.">i</button></div>
           <strong id="pyeongPrice">1,438</strong><small>만원</small>
-          <p><b class="positive" id="pyeongChange">+0.9%</b> 전월 대비</p>
+          <p><b id="pyeongChange">—</b> 직전 동기간 대비</p>
         </article>
         <article class="metric">
           <div><span>거래량</span><button class="mini-info" data-tip="신고 취소 건을 제외한 선택 월의 거래 건수입니다.">i</button></div>
           <strong id="dealCount">286</strong><small>건</small>
-          <p><b class="negative" id="dealChange">−4.7%</b> 전월 대비</p>
+          <p><b id="dealChange">—</b> 직전 동기간 대비</p>
         </article>
         <article class="metric">
           <div><span>전세가율</span><button class="mini-info" data-tip="매매가 대비 전세가 비율입니다.">i</button></div>
           <strong id="jeonseRate">68.4</strong><small>%</small>
-          <p><b class="positive">+0.3%p</b> 전월 대비</p>
+          <p><b id="jeonseNote">84형 중위가격 기준</b></p>
         </article>
       </section>
       <p class="data-freshness" id="dataFreshness">국토교통부 실거래 자료를 확인하고 있습니다…</p>
+
+      <section class="daily-grid" id="dailyBrief">
+        <article class="card daily-summary-card">
+          <div class="card-head"><div><p class="card-kicker">DAILY BRIEF · 84㎡</p><h2>오늘의 숫자 3줄</h2></div><span class="report-date" id="reportDate">—</span></div>
+          <ol class="brief-list" id="briefList"><li>실거래 자료를 정리하고 있습니다.</li></ol>
+          <p class="source-note" id="briefSource">국토교통부 실거래가 공개자료 기준</p>
+        </article>
+        <article class="card featured-complex-card">
+          <div class="card-head"><div><p class="card-kicker">TODAY'S COMPLEX</p><h2 id="featuredComplexName">오늘의 단지</h2></div><span class="status-pill" id="featuredComplexCount">—</span></div>
+          <p class="complex-meta" id="featuredComplexMeta">최근 거래를 불러오고 있습니다.</p>
+          <div class="recent-table" id="recentDeals"></div>
+        </article>
+      </section>
 
       <section class="dashboard-grid main-grid">
         <article class="card trend-card">
@@ -126,7 +139,7 @@
               <button class="active" data-period="1">1년</button><button data-period="3">3년</button><button data-period="5">5년</button>
             </div>
           </div>
-          <div class="chart-summary"><span class="legend-dot coral"></span><b id="chartModeLabel">매매 지수</b><strong id="chartSummary">104.8</strong><span class="positive">▲ 0.62%</span></div>
+          <div class="chart-summary"><span class="legend-dot coral"></span><b id="chartModeLabel">매매 지수</b><strong id="chartSummary">104.8</strong><span id="chartChange">—</span></div>
           <div class="line-chart" id="lineChart" aria-label="가격지수 추이 차트"></div>
           <div class="chart-foot"><span>※ 조회기간 첫 거래월 중위가격 = 100</span><span>취소·해제 신고 제외</span></div>
         </article>
@@ -225,19 +238,9 @@
         </div>
       </section>
 
-      <section class="bottom-grid">
-        <article class="card signal-card">
-          <div class="card-head"><div><p class="card-kicker">MARKET SIGNAL</p><h2>거래 수요 온도</h2></div><span class="status-pill">보통 이상</span></div>
-          <div class="gauge"><div class="gauge-fill"></div><i></i></div>
-          <div class="gauge-labels"><span>관망</span><span>균형</span><span>활발</span></div>
-          <div class="signal-facts"><div><span>매물 소진 속도</span><b>7.2일 단축</b></div><div><span>신고가 거래 비중</span><b>11.8%</b></div><div><span>거래 집중 면적</span><b>84㎡</b></div></div>
-        </article>
-        <article class="card watch-card">
-          <div class="card-head"><div><p class="card-kicker">WATCH LIST</p><h2>지금 주목할 생활권</h2></div><button class="icon-button">＋</button></div>
-          <div class="watch-item"><span class="watch-num">01</span><div><b>동대구역 생활권</b><small>복합환승센터 · KTX · 생활편의</small></div><em class="positive">+2.4%</em></div>
-          <div class="watch-item"><span class="watch-num">02</span><div><b>대구혁신도시</b><small>공공기관 · 신축단지 · 녹지</small></div><em class="positive">+1.8%</em></div>
-          <div class="watch-item"><span class="watch-num">03</span><div><b>율하 생활권</b><small>도시철도 1호선 · 상업시설</small></div><em class="positive">+1.1%</em></div>
-        </article>
+      <section class="consult-strip">
+        <div><p class="card-kicker">LOCAL ADVISORY</p><h2>숫자를 내 집의 조건으로 바꿔보세요.</h2><span>대구 동구 84형 실거래 흐름과 생활권을 함께 비교해 드립니다.</span></div>
+        <a href="tel:01021672400"><small>김영숙 대표에게 전화 상담</small><b>010-2167-2400</b></a>
       </section>
     </main>
 
