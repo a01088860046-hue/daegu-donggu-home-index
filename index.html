@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="대구 동구 아파트 실거래가, 평당가, 입지분석을 한눈에 보는 데이터 대시보드" />
+  <title>김영숙부동산 | 대구 동구 아파트 데이터</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20261029-2" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="김영숙부동산 홈">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span><strong><b>김영숙</b>부동산</strong><small>동구 아파트 인사이트</small></span>
+      </a>
+      <nav class="main-nav" aria-label="주요 메뉴">
+        <button class="nav-link active" data-scroll="market">시장동향</button>
+        <button class="nav-link" data-scroll="ranking">단지랭킹</button>
+        <button class="nav-link" data-scroll="location">입지분석</button>
+      </nav>
+      <div class="top-actions">
+        <div class="broker-profile">
+          <span>대표</span><b>김영숙</b>
+          <a href="tel:01021672400" aria-label="김영숙부동산 전화 010-2167-2400">010-2167-2400</a>
+        </div>
+        <span class="data-state"><i></i> 오늘 <b id="todayDate">—</b></span>
+        <button class="icon-button" id="helpButton" aria-label="데이터 안내">?</button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero-row">
+        <div>
+          <p class="eyebrow">DAEGU DONG-GU REAL ESTATE INTELLIGENCE</p>
+          <h1><span id="heroRegion">동구 전체</span> 아파트 시장을<br><em>한눈에, 더 정확하게.</em></h1>
+          <p class="hero-copy">실거래 흐름부터 단지별 가격, 생활 인프라까지<br>의사결정에 필요한 신호만 선명하게 모았습니다.</p>
+        </div>
+        <div class="quick-insight">
+          <div class="spark-icon">↗</div>
+          <p>이번 달 인사이트</p>
+          <strong id="heroInsight">매매 지수 3개월 연속 상승</strong>
+          <span id="heroInsightSub">혁신도시·동대구역 생활권이 상승을 견인했어요.</span>
+        </div>
+      </section>
+
+      <section class="filter-bar" aria-label="조회 조건">
+        <label class="filter-field">
+          <span>지역</span>
+          <select id="regionSelect">
+            <option value="전체">동구 전체</option>
+            <option>신천동</option><option>신암동</option><option>효목동</option>
+            <option>봉무동</option><option>불로동</option><option>각산동</option>
+            <option>율하동</option><option>지묘동</option><option>검사동</option>
+          </select>
+        </label>
+        <div class="filter-field area-fixed" aria-label="면적 기준 전용 84제곱미터형">
+          <span>면적 기준</span>
+          <strong>전용 84㎡형</strong>
+        </div>
+        <label class="filter-field date-field">
+          <span>시작일</span>
+          <input type="date" id="startDate" aria-label="조회 시작일" />
+        </label>
+        <span class="date-separator" aria-hidden="true">→</span>
+        <label class="filter-field date-field">
+          <span>종료일</span>
+          <input type="date" id="endDate" aria-label="조회 종료일" />
+        </label>
+        <div class="filter-field grow">
+          <span>거래유형</span>
+          <div class="segment-control" id="dealType">
+            <button class="active" data-type="매매">매매</button>
+            <button data-type="전세">전세</button>
+            <button data-type="월세">월세</button>
+          </div>
+        </div>
+        <label class="search-field">
+          <span class="sr-only">아파트 검색</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg>
+          <input id="searchInput" placeholder="단지명으로 검색" />
+        </label>
+        <button class="primary-button" id="applyButton">조회하기</button>
+      </section>
+
+      <section class="metric-strip" id="market">
+        <article class="metric active">
+          <div><span>실거래가 가격지수</span><button class="mini-info" data-tip="기준 시점 대비 실거래 가격 흐름을 지수화한 값입니다.">i</button></div>
+          <strong id="indexValue">104.8</strong>
+          <p><b id="indexChange">—</b> 직전 월 대비</p>
+        </article>
+        <article class="metric">
+          <div><span>평균 실거래가</span><button class="mini-info" data-tip="선택 조건의 전용면적 84㎡형 거래 평균입니다.">i</button></div>
+          <strong id="avgPrice">4억 3,820</strong><small>만원</small>
+          <p><b id="avgChange">—</b> 직전 동기간 대비</p>
+        </article>
+        <article class="metric">
+          <div><span>평균 평당가</span><button class="mini-info" data-tip="실거래가를 계약면적 기준 3.3㎡로 환산한 참고 지표입니다.">i</button></div>
+          <strong id="pyeongPrice">1,438</strong><small>만원</small>
+          <p><b id="pyeongChange">—</b> 직전 동기간 대비</p>
+        </article>
+        <article class="metric">
+          <div><span>거래량</span><button class="mini-info" data-tip="신고 취소 건을 제외한 선택 월의 거래 건수입니다.">i</button></div>
+          <strong id="dealCount">286</strong><small>건</small>
+          <p><b id="dealChange">—</b> 직전 동기간 대비</p>
+        </article>
+        <article class="metric">
+          <div><span>전세가율</span><button class="mini-info" data-tip="매매가 대비 전세가 비율입니다.">i</button></div>
+          <strong id="jeonseRate">68.4</strong><small>%</small>
+          <p><b id="jeonseNote">84형 중위가격 기준</b></p>
+        </article>
+      </section>
+      <p class="data-freshness" id="dataFreshness">국토교통부 실거래 자료를 확인하고 있습니다…</p>
+      <p class="review-notice" id="reviewNotice" hidden></p>
+
+      <section class="daily-grid" id="dailyBrief">
+        <article class="card daily-summary-card">
+          <div class="card-head"><div><p class="card-kicker">DAILY BRIEF · 84㎡</p><h2>오늘의 숫자 3줄</h2></div><span class="report-date" id="reportDate">—</span></div>
+          <ol class="brief-list" id="briefList"><li>실거래 자료를 정리하고 있습니다.</li></ol>
+          <p class="source-note" id="briefSource">국토교통부 실거래가 공개자료 기준</p>
+        </article>
+        <article class="card featured-complex-card">
+          <div class="card-head"><div><p class="card-kicker">TODAY'S COMPLEX</p><h2 id="featuredComplexName">오늘의 단지</h2></div><span class="status-pill" id="featuredComplexCount">—</span></div>
+          <p class="complex-meta" id="featuredComplexMeta">최근 거래를 불러오고 있습니다.</p>
+          <div class="recent-table" id="recentDeals"></div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid main-grid">
+        <article class="card trend-card">
+          <div class="card-head">
+            <div>
+              <p class="card-kicker">MARKET PULSE</p>
+              <h2>아파트 실거래가 가격지수</h2>
+            </div>
+            <div class="period-control" id="periodControl">
+              <button class="active" data-period="1">1년</button><button data-period="3">3년</button><button data-period="5">5년</button>
+            </div>
+          </div>
+          <div class="chart-summary"><span class="legend-dot coral"></span><b id="chartModeLabel">매매 지수</b><strong id="chartSummary">104.8</strong><span id="chartChange">—</span></div>
+          <div class="line-chart" id="lineChart" aria-label="가격지수 추이 차트"></div>
+          <div class="chart-foot"><span>※ 조회기간 첫 거래월 중위가격 = 100</span><span>취소·해제 신고 제외</span></div>
+        </article>
+
+        <article class="card map-card">
+          <div class="card-head map-head">
+            <div><p class="card-kicker">MICRO LOCATION</p><h2>동구 생활권 지도</h2></div>
+            <div class="map-legend"><i></i> 선택 지역 <i></i> 주요 거점</div>
+          </div>
+          <div class="map-wrap">
+            <svg class="donggu-map" viewBox="0 0 520 430" role="img" aria-label="대구 동구 주요 동과 생활 인프라 지도">
+              <defs>
+                <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-opacity=".12"/></filter>
+                <linearGradient id="land" x1="0" x2="1"><stop stop-color="#f0f4ee"/><stop offset="1" stop-color="#e6eee9"/></linearGradient>
+              </defs>
+              <path class="map-shape" d="M172 22c45-16 91 15 121 38 31 24 50 60 92 74 48 16 87 7 106 41 24 45-15 78-52 98-29 17-47 34-61 70-15 39-55 73-104 64-42-8-47-51-83-66-38-15-103 3-131-33-24-31 5-72 20-100 17-32 14-68 27-105 12-35 29-68 65-81Z" fill="url(#land)"/>
+              <path class="river" d="M38 278c83-25 125-7 186 7 59 14 114-30 180-20 34 6 59 22 93 41"/>
+              <path class="road road-1" d="M88 229 454 135"/><path class="road road-2" d="M168 41 262 391"/><path class="road road-3" d="m74 314 324-83"/>
+              <g class="rail"><path d="M92 248 427 164"/><path d="m100 258 335-84"/></g>
+              <g class="map-labels">
+                <text x="194" y="97">봉무동</text><text x="318" y="105">지묘동</text><text x="116" y="190">신암동</text>
+                <text x="218" y="194">효목동</text><text x="337" y="194">불로동</text><text x="129" y="307">신천동</text>
+                <text x="260" y="314">검사동</text><text x="375" y="287">각산동</text><text x="320" y="370">율하동</text>
+              </g>
+              <g class="map-pins">
+                <button class="map-pin hub" data-region="신천동" aria-label="동대구역"><circle cx="147" cy="266" r="13"/><path d="m142 265 5-5 5 5m-5-5v12"/><text x="165" y="271">동대구역</text></button>
+                <button class="map-pin" data-region="각산동" aria-label="각산동"><circle cx="390" cy="260" r="9"/><text x="405" y="264">혁신도시</text></button>
+                <button class="map-pin" data-region="율하동" aria-label="율하동"><circle cx="307" cy="345" r="9"/><text x="322" y="349">율하역</text></button>
+                <button class="map-pin" data-region="봉무동" aria-label="봉무동"><circle cx="223" cy="77" r="9"/><text x="238" y="81">이시아폴리스</text></button>
+              </g>
+              <g class="school-map-pins" aria-label="주요 학교">
+                <g class="school-map-pin" role="button" tabindex="0" data-school="동대구초등학교"><circle cx="123" cy="218" r="8"/><text x="123" y="221">S</text></g>
+                <g class="school-map-pin" role="button" tabindex="0" data-school="신암중학교"><circle cx="166" cy="168" r="8"/><text x="166" y="171">S</text></g>
+                <g class="school-map-pin" role="button" tabindex="0" data-school="대구새론초등학교"><circle cx="411" cy="238" r="8"/><text x="411" y="241">S</text></g>
+                <g class="school-map-pin" role="button" tabindex="0" data-school="율하초등학교"><circle cx="286" cy="370" r="8"/><text x="286" y="373">S</text></g>
+              </g>
+            </svg>
+            <div class="map-stats">
+              <span>선택 생활권</span><b id="mapRegion">동구 전체</b>
+              <div><em>교통</em><strong id="mapTransit">A</strong></div>
+              <div><em>교육</em><strong id="mapSchool">B+</strong></div>
+              <div><em>생활</em><strong id="mapLife">A−</strong></div>
+            </div>
+            <div class="map-zoom"><button aria-label="확대">＋</button><button aria-label="축소">−</button></div>
+          </div>
+          <div class="map-bottom"><span>지도 위 거점을 클릭해 지역을 선택하세요.</span><button id="resetMap">전체 보기 ↗</button></div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid rank-grid" id="ranking">
+        <article class="card ranking-card">
+          <div class="card-head">
+            <div><p class="card-kicker">TOP TRANSACTIONS · 84㎡</p><h2>84형 아파트 실거래가 TOP 10</h2></div>
+            <span class="unit">단위: 만원</span>
+          </div>
+          <div id="priceRanking" class="ranking-list"></div>
+          <button class="text-button" data-expand="price">전체 순위 보기 <span>→</span></button>
+        </article>
+        <article class="card ranking-card">
+          <div class="card-head">
+            <div><p class="card-kicker">VALUE PER 3.3㎡ · 84㎡</p><h2>84형 아파트 평당가격 TOP 10</h2></div>
+            <span class="unit">단위: 만원/평</span>
+          </div>
+          <div id="pyeongRanking" class="ranking-list"></div>
+          <button class="text-button" data-expand="pyeong">전체 순위 보기 <span>→</span></button>
+        </article>
+      </section>
+
+      <section class="location-section" id="location">
+        <div class="section-title">
+          <div><p class="card-kicker">LOCATION INTELLIGENCE</p><h2>숫자 너머의 입지, 생활의 기준으로 봅니다.</h2></div>
+          <p>관심 요소를 클릭하면 선택 지역의 상세 분석이 펼쳐집니다.</p>
+        </div>
+        <div class="location-layout">
+          <div class="location-menu" role="tablist" aria-label="입지 분석 항목">
+            <button class="location-tab active" data-loc="school"><span class="loc-icon">學</span><span><b>학군</b><small>학교·학원가·통학환경</small></span><em>→</em></button>
+            <button class="location-tab" data-loc="transit"><span class="loc-icon">路</span><span><b>교통</b><small>도로·버스·도심 접근성</small></span><em>→</em></button>
+            <button class="location-tab" data-loc="subway"><span class="loc-icon">M</span><span><b>지하철</b><small>역세권·환승·배차</small></span><em>→</em></button>
+            <button class="location-tab" data-loc="ktx"><span class="loc-icon">K</span><span><b>KTX</b><small>동대구역 광역 접근성</small></span><em>→</em></button>
+            <button class="location-tab" data-loc="gtx"><span class="loc-icon">G</span><span><b>광역철도</b><small>대경선·향후 교통 계획</small></span><em>→</em></button>
+            <button class="location-tab" data-loc="life"><span class="loc-icon">＋</span><span><b>생활 인프라</b><small>병원·쇼핑·공원</small></span><em>→</em></button>
+          </div>
+          <article class="location-detail" id="locationDetail">
+            <div class="detail-top">
+              <div><span class="detail-label" id="locLabel">EDUCATION</span><h3 id="locTitle">아이의 하루가 가까워지는 학군</h3><p id="locDesc">초등학교 접근성과 학원가 밀집도, 통학 안전 요소를 함께 평가했습니다.</p></div>
+              <div class="score-ring" style="--score:82"><span><b id="locScore">82</b><small>/ 100</small></span></div>
+            </div>
+            <div class="detail-grid" id="locFacts"></div>
+            <div class="school-explorer" id="schoolExplorer">
+              <div class="school-explorer-head"><span>학교를 눌러 상세정보를 확인하세요</span><small>참고용 데모 정보</small></div>
+              <div class="school-list" id="schoolList"></div>
+              <div class="school-selected" id="schoolSelected"></div>
+            </div>
+            <div class="analyst-note"><span>AI SUMMARY</span><p id="locNote">율하·각산 생활권은 학교와 신축 주거지가 가깝고, 신천·신암 생활권은 학원 및 문화시설 접근성이 상대적으로 우수합니다.</p></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="consult-strip">
+        <div><p class="card-kicker">LOCAL ADVISORY</p><h2>숫자를 내 집의 조건으로 바꿔보세요.</h2><span>대구 동구 84형 실거래 흐름과 생활권을 함께 비교해 드립니다.</span></div>
+        <a href="tel:01021672400"><small>김영숙 대표에게 전화 상담</small><b>010-2167-2400</b></a>
+      </section>
+    </main>
+
+    <footer>
+      <div><b>김영숙부동산</b><span>대표 김영숙 · 010-2167-2400</span></div>
+      <p>가격·거래량은 국토교통부 실거래가 공개자료를 가공한 참고정보입니다. 신고 정정·해제 및 자료 반영 시차가 있을 수 있으므로 계약 전 원자료를 확인하세요.</p>
+      <span>© 2026 DONG-GU HOME INDEX</span>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <dialog id="infoDialog">
+    <button class="dialog-close" aria-label="닫기">×</button>
+    <span class="dialog-kicker">DATA NOTE</span>
+    <h2>대시보드 데이터 안내</h2>
+    <p>가격·거래량·순위는 <b>전용면적 84.00㎡ 이상 85.00㎡ 미만</b> 거래만 비교하며, 국토교통부 아파트 매매 및 전월세 실거래가 OpenAPI 자료를 사용합니다. 취소·해제 거래를 제외하고 매일 자동 갱신됩니다.</p>
+    <div class="dialog-box"><b>계산 기준</b><span>평당가는 거래금액을 전용면적 3.3㎡ 기준으로 환산합니다. 월세 순위는 월세액을 기준으로 하며 보증금은 함께 표시합니다.</span></div>
+  </dialog>
+  <script src="app.js?v=20261029-3"></script>
+</body>
+</html>
